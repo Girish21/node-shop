@@ -11,10 +11,16 @@ const transporter = nodemailer.createTransport(sendGridTransport({
 }));
 
 exports.getLogin = (req, res, next) => {
+  let messages = req.flash('error');
+  if (messages.length == 0)
+    messages = null;
+  else
+    messages = messages[0];
+
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    errorMessage: req.flash('error')
+    errorMessage: messages
   });
 };
 
@@ -91,5 +97,19 @@ exports.postLogout = (req, res, next) => {
     // if (!err)
     // console.log(err)
     return res.redirect('/');
+  });
+}
+
+exports.getReset = (req, res, next) => {
+  let messages = req.flash('error');
+  if (messages.length == 0)
+    messages = null;
+  else
+    messages = messages[0];
+
+  res.render('auth/reset', {
+    path: '/reset',
+    pageTitle: 'Reset Password',
+    errorMessage: messages
   });
 }
