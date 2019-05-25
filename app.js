@@ -1,17 +1,19 @@
-const path = require('path');
+const path = require("path");
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const MongoDBStore = require('connect-mongodb-session')(session);
+require("dotenv").config();
 
-const csrf = require('csurf')
-const flash = require('connect-flash')
+const express = require("express");
+const bodyParser = require("body-parser");
+const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
 
-const errorController = require('./controllers/error');
-const User = require('./models/user');
+const csrf = require("csurf");
+const flash = require("connect-flash");
 
-const mongoose = require('mongoose');
+const errorController = require("./controllers/error");
+const User = require("./models/user");
+
+const mongoose = require("mongoose");
 // const sequelize = require('./util/database');
 // const Product = require('./models/product');
 // const Cart = require('./models/cart');
@@ -19,52 +21,52 @@ const mongoose = require('mongoose');
 // const Order = require('./models/order');
 // const OrderItem = require('./models/order-item');
 
-const MONGO_DB_URI = 'mongodb+srv://girish21:DdtYy5wYu3n87WB@cluster0-efuzf.gcp.mongodb.net/test';
+const MONGO_DB_URI = process.env.MONGO_DB_URI;
 
 const app = express();
 const store = new MongoDBStore({
-    uri: MONGO_DB_URI,
-    collection: 'sessions',
-
+  uri: MONGO_DB_URI,
+  collection: "sessions"
 });
 
-app.set('view engine', 'ejs');
-app.set('views', 'views');
+app.set("view engine", "ejs");
+app.set("views", "views");
 
-const adminRoutes = require('./routes/admin');
-const shopRoutes = require('./routes/shop');
-const authRoutes = require('./routes/auth');
+const adminRoutes = require("./routes/admin");
+const shopRoutes = require("./routes/shop");
+const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use(session({
-    secret: 'my-secret',
+app.use(
+  session({
+    secret: "my-secret",
     resave: false,
     saveUninitialized: false,
     store: store
-}))
+  })
+);
 
-app.use(csrf())
-app.use(flash())
-
-app.use((req, res, next) => {
-    if (req.session.user)
-        User.findById(req.session.user._id, (err, user) => {
-            req.user = user;
-            next();
-        })
-    else
-        next();
-})
+app.use(csrf());
+app.use(flash());
 
 app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isAuthenticated;
-    res.locals.csrfToken = req.csrfToken();
-    next();
-})
+  if (req.session.user)
+    User.findById(req.session.user._id, (err, user) => {
+      req.user = user;
+      next();
+    });
+  else next();
+});
 
-app.use('/admin', adminRoutes);
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isAuthenticated;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
+app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
@@ -104,26 +106,27 @@ app.use(errorController.get404);
 //     console.log(err);
 //   });
 
-// :: mongoDB :: 
+// :: mongoDB ::
 // mongoConnect.MongoConnect((c) => {
 //     app.listen(3000);
 // })
 
 // :: mongoose ::
-mongoose.connect(MONGO_DB_URI, { useNewUrlParser: true })
-    .then((connection) => {
-        // User.findOne().then(user => {
-        //     if (!user) {
-        //         const user = new User({
-        //             userName: 'Girish',
-        //             email: 'xyz@xyz.com',
-        //             cart: {
-        //                 items: []
-        //             }
-        //         })
-        //         user.save();
-        //     }
-        // })
-        app.listen(3000);
-    })
-    .catch(err => console.log(err))
+mongoose
+  .connect(MONGO_DB_URI, { useNewUrlParser: true })
+  .then(connection => {
+    // User.findOne().then(user => {
+    //     if (!user) {
+    //         const user = new User({
+    //             userName: 'Girish',
+    //             email: 'xyz@xyz.com',
+    //             cart: {
+    //                 items: []
+    //             }
+    //         })
+    //         user.save();
+    //     }
+    // })
+    app.listen(3000);
+  })
+  .catch(err => console.log(err));
