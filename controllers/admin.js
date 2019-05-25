@@ -1,9 +1,9 @@
-const Product = require('../models/product');
+const Product = require("../models/product");
 
 exports.getAddProduct = (req, res, next) => {
-  res.render('admin/edit-product', {
-    pageTitle: 'Add Product',
-    path: '/admin/add-product',
+  res.render("admin/edit-product", {
+    pageTitle: "Add Product",
+    path: "/admin/add-product",
     editing: false,
     isAuthenticated: req.session.isAuthenticated
   });
@@ -35,11 +35,12 @@ exports.postAddProduct = (req, res, next) => {
     price: price,
     description: description,
     imageUrl: imageUrl,
-    userId: req.user,
+    userId: req.user
   });
-  product.save()
+  product
+    .save()
     .then(result => {
-      res.redirect('/admin/products');
+      res.redirect("/admin/products");
     })
     .catch(err => {
       console.log(err);
@@ -73,21 +74,20 @@ exports.getEditProduct = (req, res, next) => {
 
   const editMode = req.query.edit;
   if (!editMode) {
-    return res.redirect('/');
+    return res.redirect("/");
   }
   const prodId = req.params.productId;
 
   Product.findById(prodId, (err, product) => {
-    if (!product)
-      return res.redirect('/');
-    res.render('admin/edit-product', {
-      pageTitle: 'Edit Product',
-      path: '/admin/edit-product',
+    if (!product) return res.redirect("/");
+    res.render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
       editing: editMode,
       product: product,
       isAuthenticated: req.session.isAuthenticated
     });
-  })
+  });
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -120,18 +120,20 @@ exports.postEditProduct = (req, res, next) => {
   const updatedDesc = req.body.description;
 
   Product.findById(prodId, (err, product) => {
-    product.title = updatedTitle;
-    product.price = updatedPrice;
-    product.imageUrl = updatedImageUrl;
-    product.description = updatedDesc;
-    return product.save()
-  })
-    .then((result) => {
-      if (result) {
-        return res.redirect('/admin/products');
-      }
-      // console.log()
-    })
+    if (product.userId.toString() == req.user._id) {
+      product.title = updatedTitle;
+      product.price = updatedPrice;
+      product.imageUrl = updatedImageUrl;
+      product.description = updatedDesc;
+      return product.save().then(result => {
+        if (result) {
+          return res.redirect("/admin/products");
+        }
+        // console.log()
+      });
+    }
+    return res.redirect("/");
+  });
 };
 
 exports.getProducts = (req, res, next) => {
@@ -146,12 +148,12 @@ exports.getProducts = (req, res, next) => {
   //   })
   //   .catch(err => console.log(err));
 
-  Product.find()
+  Product.find({ userId: req.user._id })
     .then(products => {
-      res.render('admin/products', {
+      res.render("admin/products", {
         prods: products,
-        pageTitle: 'Admin Products',
-        path: '/admin/products',
+        pageTitle: "Admin Products",
+        path: "/admin/products",
         isAuthenticated: req.session.isAuthenticated
       });
     })
@@ -169,9 +171,7 @@ exports.postDeleteProduct = (req, res, next) => {
   //   .catch(err => console.log(err));
 
   const prodId = req.body.productId;
-
-  Product.deleteOne({ _id: prodId }, (err) => {
-    if (!err)
-      return res.redirect('/admin/products');
-  })
+  Product.deleteOne({ _id: prodId, userId: req.user._id }, err => {
+    if (!err) return res.redirect("/admin/products");
+  });
 };
