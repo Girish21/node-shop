@@ -10,21 +10,45 @@
         <form class="login-form" action="/signup" method="POST">
             <div class="form-control">
                 <label for="email">E-Mail</label>
-                <input type="email" name="email" id="email">
+                <input type="email" name="email" id="email" value="<%= oldInput['email'] %>">
+                <% if (errorMessage) { %>
+                    <% if (errorMessage.length > 0) { %>
+                        <% for (let error of errorMessage) { %>
+                            <% if (error['param'] == "email") { %>
+                                <%= error['msg'] %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
+                <% } %>
             </div>
             <div class="form-control">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password">
+                <input type="password" name="password" id="password" value="<%= oldInput['password'] %>">
+                <% if (errorMessage) { %>
+                    <% if (errorMessage.length > 0) { %>
+                        <% for (let error of errorMessage) { %>
+                            <% if (error['param'] == "password") { %>
+                                <%= error['msg'] %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
+                <% } %>
             </div>
             <div class="form-control">
                 <label for="confirmPassword">Confirm Password</label>
                 <input type="password" name="confirmPassword" id="confirmPassword">
+                <% if (errorMessage) { %>
+                    <% if (errorMessage.length > 0) { %>
+                        <% for (let error of errorMessage) { %>
+                            <% if (error['param'] == "confirmPassword") { %>
+                                <%= error['msg'] %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
+                <% } %>
             </div>
             <button class="btn" type="submit">Signup</button>
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <% if (errorMessage) { %>
-            <p><%= errorMessage %></p>
-            <% } %>
         </form>
     </main>
     <%- include('../includes/end.ejs') %>

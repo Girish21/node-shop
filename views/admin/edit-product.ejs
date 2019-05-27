@@ -11,22 +11,58 @@
             method="POST">
             <div class="form-control">
                 <label for="title">Title</label>
-                <input type="text" name="title" id="title" value="<% if (editing) { %><%= product.title %><% } %>">
+                <input type="text" name="title" id="title" value="<% if (editing) { %><%= product.title %><% } else { %><%= oldInputs.title %><% } %>">
+                <% if (errorMessage) { %>
+                    <% if (errorMessage.length > 0) { %>
+                        <% for (let error of errorMessage) { %>
+                            <% if (error['param'] == "title") { %>
+                                <%= error['msg'] %></br>
+                            <% } %>
+                        <% } %>
+                    <% } %>
+                <% } %>
             </div>
             <div class="form-control">
                 <label for="imageUrl">Image URL</label>
                 <input type="text" name="imageUrl" id="imageUrl"
-                    value="<% if (editing) { %><%= product.imageUrl %><% } %>">
+                    value="<% if (editing) { %><%= product.imageUrl %><% } else { %><%= oldInputs.imageUrl %><% } %>">
+                    <% if (errorMessage) { %>
+                        <% if (errorMessage.length > 0) { %>
+                            <% for (let error of errorMessage) { %>
+                                <% if (error['param'] == "imageUrl") { %>
+                                    <%= error['msg'] %></br>
+                                <% } %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
             </div>
             <div class="form-control">
                 <label for="price">Price</label>
                 <input type="number" name="price" id="price" step="0.01"
-                    value="<% if (editing) { %><%= product.price %><% } %>">
+                    value="<% if (editing) { %><%= product.price %><% } else { %><%= oldInputs.price %><% } %>">
+                    <% if (errorMessage) { %>
+                        <% if (errorMessage.length > 0) { %>
+                            <% for (let error of errorMessage) { %>
+                                <% if (error['param'] == "price") { %>
+                                    <%= error['msg'] %></br>
+                                <% } %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
             </div>
             <div class="form-control">
                 <label for="description">Description</label>
                 <textarea name="description" id="description"
-                    rows="5"><% if (editing) { %><%= product.description %><% } %></textarea>
+                    rows="5"><% if (editing) { %><%= product.description %><% } else { %><%= oldInputs.description %><% } %></textarea>
+                    <% if (errorMessage) { %>
+                        <% if (errorMessage.length > 0) { %>
+                            <% for (let error of errorMessage) { %>
+                                <% if (error['param'] == "description") { %>
+                                    <%= error['msg'] %></br>
+                                <% } %>
+                            <% } %>
+                        <% } %>
+                    <% } %>
             </div>
             <% if (editing) { %>
             <input type="hidden" value="<%= product._id %>" name="productId">

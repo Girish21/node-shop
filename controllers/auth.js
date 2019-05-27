@@ -1,5 +1,7 @@
 const crypto = require("crypto");
 
+const { validationResult } = require("express-validator/check");
+
 require("dotenv").config();
 
 const Bcrypt = require("bcryptjs");
@@ -34,7 +36,8 @@ exports.getSignup = (req, res, next) => {
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Signup",
-    isAuthenticated: false
+    errorMessage: [],
+    oldInput: { email: "", password: "" }
   });
 };
 
@@ -67,33 +70,35 @@ exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
+  const errors = validationResult(req);
 
-  User.findOne({ email: email })
-    .then(user => {
-      if (user) {
-        return res.redirect("/signup");
-      }
-      return Bcrypt.hash(password, 12)
-        .then(hash => {
-          const user_new = new User({
-            email: email,
-            password: hash,
-            cart: {
-              items: []
-            }
-          });
-          return user_new.save();
-        })
-        .then(result => {
-          res.redirect("/login");
-          return transporter.sendMail({
-            to: email,
-            from: "shop@node-test.com",
-            subject: "Signup Success",
-            html: "<h1>You Successfully signed up!</h1>"
-          });
-        })
-        .catch(err => console.log(err));
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/signup", {
+      path: "/signup",
+      pageTitle: "Signup",
+      errorMessage: errors.array(),
+      oldInput: { email: email, password: password }
+    }); // validation failed
+  }
+  return Bcrypt.hash(password, 12)
+    .then(hash => {
+      const user_new = new User({
+        email: email,
+        password: hash,
+        cart: {
+          items: []
+        }
+      });
+      return user_new.save();
+    })
+    .then(result => {
+      res.redirect("/login");
+      return transporter.sendMail({
+        to: email,
+        from: "shop@node-test.com",
+        subject: "Signup Success",
+        html: "<h1>You Successfully signed up!</h1>"
+      });
     })
     .catch(err => console.log(err));
 };
