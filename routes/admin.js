@@ -23,9 +23,6 @@ router.post(
     check("title", "Title cannot be empty")
       .not()
       .isEmpty(),
-    check("imageUrl", "Image URL cannot be empty")
-      .not()
-      .isEmpty(),
     check("price", "Price cannot be empty")
       .not()
       .isEmpty(),
@@ -46,7 +43,25 @@ router.get(
   adminController.getEditProduct
 );
 
-router.post("/edit-product", authGuard, adminController.postEditProduct);
+router.post(
+  "/edit-product",
+  [
+    check("title", "Title cannot be empty")
+      .not()
+      .isEmpty(),
+    check("price", "Price cannot be empty")
+      .not()
+      .isEmpty(),
+    check("description", "Description cannot be empty")
+      .not()
+      .isEmpty(),
+    check("title", "Title should be atleast 3 charaters in length").isLength({
+      min: 3
+    })
+  ],
+  authGuard,
+  adminController.postEditProduct
+);
 
 router.post("/delete-product", authGuard, adminController.postDeleteProduct);
 

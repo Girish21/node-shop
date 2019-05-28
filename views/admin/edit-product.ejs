@@ -8,7 +8,7 @@
 
     <main>
         <form class="product-form" action="/admin/<% if (editing) { %>edit-product<% } else { %>add-product<% } %>"
-            method="POST">
+            method="POST" enctype="multipart/form-data">
             <div class="form-control">
                 <label for="title">Title</label>
                 <input type="text" name="title" id="title" value="<% if (editing) { %><%= product.title %><% } else { %><%= oldInputs.title %><% } %>">
@@ -22,7 +22,7 @@
                     <% } %>
                 <% } %>
             </div>
-            <div class="form-control">
+            <!-- <div class="form-control">
                 <label for="imageUrl">Image URL</label>
                 <input type="text" name="imageUrl" id="imageUrl"
                     value="<% if (editing) { %><%= product.imageUrl %><% } else { %><%= oldInputs.imageUrl %><% } %>">
@@ -35,6 +35,19 @@
                             <% } %>
                         <% } %>
                     <% } %>
+            </div> -->
+            <div class="form-control">
+                <label for="image">Image</label>
+                <input type="file" name="image" id="image">
+                <% if (errorMessage) { %>
+                    <% if (errorMessage.length > 0) { %>
+                        <% for (let error of errorMessage) { %>
+                            <% if (error['param'] == "image") { %>
+                                <%= error['msg'] %></br>
+                            <% } %>
+                        <% } %>
+                    <% } %>
+                <% } %>
             </div>
             <div class="form-control">
                 <label for="price">Price</label>

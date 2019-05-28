@@ -9,6 +9,7 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 
 const csrf = require("csurf");
 const flash = require("connect-flash");
+const multer = require("multer");
 
 const errorController = require("./controllers/error");
 const User = require("./models/user");
@@ -20,6 +21,28 @@ const mongoose = require("mongoose");
 // const CartItem = require('./models/cart-item');
 // const Order = require('./models/order');
 // const OrderItem = require('./models/order-item');
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./images");
+  },
+  filename: (req, file, cb) => {
+    cb(
+      null,
+      new Date().toISOString().replace(/:/g, "-") + "-" + file.originalname
+    );
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === "image/png" ||
+    file.mimetype === "image/jpg" ||
+    file.mimetype === "image/jpeg"
+  )
+    cb(null, true);
+  else cb(null, false);
+};
 
 const MONGO_DB_URI = process.env.MONGO_DB_URI;
 
@@ -38,6 +61,10 @@ const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "images")));
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
+);
 
 app.use(
   session({
@@ -54,7 +81,10 @@ app.use(flash());
 app.use((req, res, next) => {
   if (req.session.user)
     User.findById(req.session.user._id, (err, user) => {
-      req.user = user;
+      if (!err) {
+        if (user) req.user = user;
+      } else console.log(err);
+
       next();
     });
   else next();
@@ -63,6 +93,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   res.locals.isAuthenticated = req.session.isAuthenticated;
   res.locals.csrfToken = req.csrfToken();
+
   next();
 });
 

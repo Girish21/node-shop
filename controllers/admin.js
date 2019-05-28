@@ -35,11 +35,25 @@ exports.postAddProduct = (req, res, next) => {
   //   });
 
   const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
+  const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
 
   let errors = validationResult(req);
+
+  if (!image) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      errorMessage: [{ param: "image", msg: "Selected file is not an image" }],
+      oldInputs: {
+        title: title,
+        price: price,
+        description: description
+      }
+    });
+  }
 
   if (!errors.isEmpty()) {
     return res.status(422).render("admin/edit-product", {
@@ -49,12 +63,14 @@ exports.postAddProduct = (req, res, next) => {
       errorMessage: errors.array(),
       oldInputs: {
         title: title,
-        imageUrl: imageUrl,
         price: price,
         description: description
       }
     });
   }
+
+  const imageUrl = image.path;
+
   const product = new Product({
     title: title,
     price: price,
@@ -110,6 +126,7 @@ exports.getEditProduct = (req, res, next) => {
       path: "/admin/edit-product",
       editing: editMode,
       product: product,
+      errorMessage: [],
       isAuthenticated: req.session.isAuthenticated
     });
   });
@@ -141,14 +158,30 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedDesc = req.body.description;
+
+  let errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
+      editing: true,
+      errorMessage: errors.array(),
+      oldInputs: {
+        title: title,
+        price: price,
+        description: description
+      }
+    });
+  }
 
   Product.findById(prodId, (err, product) => {
     if (product.userId.toString() == req.user._id) {
       product.title = updatedTitle;
       product.price = updatedPrice;
-      product.imageUrl = updatedImageUrl;
+      if (image) product.imageUrl = image.path;
       product.description = updatedDesc;
       return product.save().then(result => {
         if (result) {
