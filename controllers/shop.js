@@ -4,6 +4,10 @@ const Product = require("../models/product");
 const Order = require("../models/order");
 const PDFDocument = require("pdfkit");
 
+require("dotenv").config();
+
+const itemsPerPage = process.env.ITEMS_PRE_PAGE;
+
 exports.getProducts = (req, res, next) => {
   // :: mongodb driver ::
   // Product.fetchAll()
@@ -18,14 +22,35 @@ exports.getProducts = (req, res, next) => {
   //     console.log(err);
   //   });
 
-  Product.find((err, products) => {
-    res.render("shop/index", {
-      prods: products,
-      pageTitle: "Shop",
-      path: "/",
-      isAuthenticated: req.session.isAuthenticated
+  let page = +req.query.page || 1;
+  let totalProducts;
+
+  Product.find()
+    .estimatedDocumentCount()
+    .then(count => {
+      totalProducts = count;
+      return Product.find()
+        .skip((page - 1) * itemsPerPage)
+        .limit(+itemsPerPage);
+    })
+    .then(products => {
+      return res.render("shop/product-list", {
+        prods: products,
+        pageTitle: "Products",
+        path: "/products",
+        currentPage: page,
+        totalProducts: totalProducts,
+        hasNextPage: itemsPerPage * page < totalProducts,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalProducts / itemsPerPage)
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      next();
     });
-  });
 };
 
 exports.getProduct = (req, res, next) => {
@@ -75,13 +100,35 @@ exports.getIndex = (req, res, next) => {
   //     console.log(err);
   //   });
 
-  Product.find((err, products) => {
-    res.render("shop/index", {
-      prods: products,
-      pageTitle: "Shop",
-      path: "/"
+  let page = +req.query.page || 1;
+  let totalProducts;
+
+  Product.find()
+    .estimatedDocumentCount()
+    .then(count => {
+      totalProducts = count;
+      return Product.find()
+        .skip((page - 1) * itemsPerPage)
+        .limit(+itemsPerPage);
+    })
+    .then(products => {
+      return res.render("shop/index", {
+        prods: products,
+        pageTitle: "Shop",
+        path: "/",
+        currentPage: page,
+        totalProducts: totalProducts,
+        hasNextPage: itemsPerPage * page < totalProducts,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalProducts / itemsPerPage)
+      });
+    })
+    .catch(err => {
+      console.log(err);
+      next();
     });
-  });
 };
 
 exports.getCart = (req, res, next) => {

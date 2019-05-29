@@ -1,6 +1,10 @@
 const Product = require("../models/product");
 const fileHelper = require("../util/file");
 
+require("dotenv").config();
+
+const itemsPerPage = process.env.ITEMS_PRE_PAGE;
+
 const { validationResult } = require("express-validator/check");
 
 exports.getAddProduct = (req, res, next) => {
@@ -210,13 +214,29 @@ exports.getProducts = (req, res, next) => {
   //   })
   //   .catch(err => console.log(err));
 
+  let page = +req.query.page || 1;
+  let totalProducts;
+
   Product.find({ userId: req.user._id })
+    .estimatedDocumentCount()
+    .then(count => {
+      totalProducts = count;
+      return Product.find()
+        .skip((page - 1) * itemsPerPage)
+        .limit(+itemsPerPage);
+    })
     .then(products => {
       res.render("admin/products", {
         prods: products,
         pageTitle: "Admin Products",
         path: "/admin/products",
-        isAuthenticated: req.session.isAuthenticated
+        currentPage: page,
+        totalProducts: totalProducts,
+        hasNextPage: itemsPerPage * page < totalProducts,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalProducts / itemsPerPage)
       });
     })
     .catch(err => console.log(err));
