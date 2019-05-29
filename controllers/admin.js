@@ -242,7 +242,7 @@ exports.getProducts = (req, res, next) => {
     .catch(err => console.log(err));
 };
 
-exports.postDeleteProduct = (req, res, next) => {
+exports.deleteProduct = (req, res, next) => {
   // :: mongodb driver ::
   // const prodId = req.body.productId;
   // Product.deleteById(prodId)
@@ -252,12 +252,13 @@ exports.postDeleteProduct = (req, res, next) => {
   //   })
   //   .catch(err => console.log(err));
 
-  const prodId = req.body.productId;
+  const prodId = req.params.productId;
   Product.findById(prodId).then(product => {
     if (product) {
       fileHelper(product.imageUrl);
       return Product.deleteOne({ _id: prodId, userId: req.user._id }, err => {
-        if (!err) return res.redirect("/admin/products");
+        if (!err) return res.status(200).json({ message: "Sucess" });
+        else return res.status(500).json({ message: "Deletion failed" });
       });
     }
   });
